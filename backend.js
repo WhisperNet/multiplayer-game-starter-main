@@ -27,7 +27,8 @@ io.on('connection', (socket) => {
   backEndPlayers[socket.id] = {
     x: 500 * Math.random(),
     y: 500 * Math.random(),
-    color: `hsl(${Math.random() * 360},100%,50%)`
+    color: `hsl(${Math.random() * 360},100%,50%)`,
+    sequenceNumber: 0
   }
   // broadcast the data to ALL the connceted clients 
   io.emit('updatePlayer', backEndPlayers)
@@ -39,21 +40,23 @@ io.on('connection', (socket) => {
   })
 
   //socket registers each individual clients position 
-  socket.on('Keydown', (key) => {
+  const speed = 10
+  socket.on('Keydown', ({ key, sequenceNumber }) => {
     console.log(key)
+    backEndPlayers[socket.id].sequenceNumber = sequenceNumber
     switch (key) {
       case 'KeyW':
-        backEndPlayers[socket.id].y -= 5
+        backEndPlayers[socket.id].y -= speed
         console.log(key)
         break
       case 'KeyA':
-        backEndPlayers[socket.id].x -= 5
+        backEndPlayers[socket.id].x -= speed
         break
       case 'KeyS':
-        backEndPlayers[socket.id].y += 5
+        backEndPlayers[socket.id].y += speed
         break
       case 'KeyD':
-        backEndPlayers[socket.id].x += 5
+        backEndPlayers[socket.id].x += speed
         break
     }
   })

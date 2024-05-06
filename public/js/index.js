@@ -25,8 +25,23 @@ socket.on('updatePlayer', (backEndPlayers) => {
       })
     } else {
       //if a player erxist and still got a update event from the backend means its movement update event 
-      frontEndPlayers[id].x = backEndPlayer.x
-      frontEndPlayers[id].y = backEndPlayer.y
+      gsap.to(frontEndPlayers[id], {      //gsap for opponent interpolation
+        x: backEndPlayer.x,
+        y: backEndPlayer.y,
+        duration: 0.015,
+        ease: 'linear'
+      })
+
+      //server reconciliation for the player {Not opponent movement}
+      if (id === socket.id) {
+        const lastBackendInputIndex = playerInputs.findIndex(input => backEndPlayer.sequenceNumber === input.sequenceNumber)
+        if (lastBackendInputIndex > -1) playerInputs.splice(0, lastBackendInputIndex + 1)
+
+        playerInputs.forEach(input => {
+          frontEndPlayers[id].x += input.dx
+          frontEndPlayers[id].y = input.dy
+        })
+      }
     }
   }
 
@@ -54,26 +69,87 @@ function animate() {
 
 animate()
 
+const speed = 10
+const playerInputs = []
+let sequenceNumber = 0
+const keys = {
+  w: {
+    pressed: false
+  },
+  a: {
+    pressed: false
+  },
+  s: {
+    pressed: false
+  },
+  d: {
+    pressed: false
+  }
+}
+
+//movemnet prediction and emitting 
+
+setInterval(() => {
+  if (keys.w.pressed) {
+    sequenceNumber++
+    playerInputs.push({ sequenceNumber, dx: 0, dy: -speed })
+    frontEndPlayers[socket.id].y -= speed
+    socket.emit('Keydown', { key: 'KeyW', sequenceNumber })
+  }
+  if (keys.a.pressed) {
+    sequenceNumber++
+    playerInputs.push({ sequenceNumber, dx: -speed, dy: 0 })
+    frontEndPlayers[socket.id].x -= speed
+    socket.emit('Keydown', { key: 'KeyA', sequenceNumber })
+  }
+  if (keys.s.pressed) {
+    sequenceNumber++
+    playerInputs.push({ sequenceNumber, dx: 0, dy: speed })
+    frontEndPlayers[socket.id].y += speed
+    socket.emit('Keydown', { key: 'KeyS', sequenceNumber })
+  }
+  if (keys.d.pressed) {
+    sequenceNumber++
+    playerInputs.push({ sequenceNumber, dx: speed, dy: 0 })
+    frontEndPlayers[socket.id].x += speed
+    socket.emit('Keydown', { key: 'KeyD', sequenceNumber })
+  }
+}, 15);
+
 window.addEventListener('keydown', (e) => {
   if (!frontEndPlayers[socket.id]) return
 
   switch (e.code) {
     case 'KeyW':
-      // frontEndPlayers[socket.id].y -= 5
-      socket.emit('Keydown', 'KeyW')
+      keys.w.pressed = true
       break
     case 'KeyA':
-      // frontEndPlayers[socket.id].x -= 5
-      socket.emit('Keydown', 'KeyA')
+      keys.a.pressed = true
       break
     case 'KeyS':
-      // frontEndPlayers[socket.id].y += 5
-      socket.emit('Keydown', 'KeyS')
+      keys.s.pressed = true
       break
     case 'KeyD':
-      // frontEndPlayers[socket.id].x += 5
-      socket.emit('Keydown', 'KeyD')
+      keys.d.pressed = true
       break
   }
-  console.log(e.code)
+})
+
+window.addEventListener('keyup', (e) => {
+  if (!frontEndPlayers[socket.id]) return
+
+  switch (e.code) {
+    case 'KeyW':
+      keys.w.pressed = false
+      break
+    case 'KeyA':
+      keys.a.pressed = false
+      break
+    case 'KeyS':
+      keys.s.pressed = false
+      break
+    case 'KeyD':
+      keys.d.pressed = false
+      break
+  }
 })
