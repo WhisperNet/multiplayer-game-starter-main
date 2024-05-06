@@ -37,7 +37,32 @@ io.on('connection', (socket) => {
     delete backEndPlayers[socket.id]
     io.emit('updatePlayer', backEndPlayers)
   })
+
+  //socket registers each individual clients position 
+  socket.on('Keydown', (key) => {
+    console.log(key)
+    switch (key) {
+      case 'KeyW':
+        backEndPlayers[socket.id].y -= 5
+        console.log(key)
+        break
+      case 'KeyA':
+        backEndPlayers[socket.id].x -= 5
+        break
+      case 'KeyS':
+        backEndPlayers[socket.id].y += 5
+        break
+      case 'KeyD':
+        backEndPlayers[socket.id].x += 5
+        break
+    }
+  })
 });
+
+//every 15ms send the updated movement data to ALL the client 
+setInterval(() => {
+  io.emit('updatePlayer', backEndPlayers)
+}, 15)
 
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

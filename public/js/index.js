@@ -23,8 +23,13 @@ socket.on('updatePlayer', (backEndPlayers) => {
         radius: 10,
         color: backEndPlayer.color
       })
+    } else {
+      //if a player erxist and still got a update event from the backend means its movement update event 
+      frontEndPlayers[id].x = backEndPlayer.x
+      frontEndPlayers[id].y = backEndPlayer.y
     }
   }
+
   //if a player exist in foreground but not in the background will be removed 
   for (const id in frontEndPlayers) {
     if (!backEndPlayers[id]) {
@@ -49,3 +54,26 @@ function animate() {
 
 animate()
 
+window.addEventListener('keydown', (e) => {
+  if (!frontEndPlayers[socket.id]) return
+
+  switch (e.code) {
+    case 'KeyW':
+      // frontEndPlayers[socket.id].y -= 5
+      socket.emit('Keydown', 'KeyW')
+      break
+    case 'KeyA':
+      // frontEndPlayers[socket.id].x -= 5
+      socket.emit('Keydown', 'KeyA')
+      break
+    case 'KeyS':
+      // frontEndPlayers[socket.id].y += 5
+      socket.emit('Keydown', 'KeyS')
+      break
+    case 'KeyD':
+      // frontEndPlayers[socket.id].x += 5
+      socket.emit('Keydown', 'KeyD')
+      break
+  }
+  console.log(e.code)
+})
