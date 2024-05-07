@@ -21,8 +21,13 @@
         font-family: sans-serif;
         font-size: 14px;
         user-select: none;
+        background-color: rgb(0,0,0,.7);
       ">
-    <span>Score: <span id="scoreEl">0</span></span>
+    <div style="margin-bottom: 8px">Scoreboard</div>
+    <div id="playerLabels">
+      <div>Player 1</div>
+      <div>player 2</div>
+    </div>
   </div>
   <canvas></canvas>
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>

@@ -12,7 +12,29 @@ const y = canvas.height / 2
 
 //foreground obj
 const frontEndPlayers = {}
-const frontEndProjectiles = []
+const frontEndProjectiles = {}
+
+socket.on('connect', () => {
+  socket.emit('initCanvas', { width: canvas.width, height: canvas.height, devicePixelRatio })
+})
+
+socket.on('updateProjectiles', backEndProjectiles => {
+  for (const id in backEndProjectiles) {
+    if (!frontEndProjectiles[id]) {
+      frontEndProjectiles[id] =
+        new Projectile({ x: backEndProjectiles[id].x, y: backEndProjectiles[id].y, radius: 5, color: frontEndPlayers[backEndProjectiles[id].playerId]?.color, velocity: backEndProjectiles[id].velocity })
+    } else {
+      frontEndProjectiles[id].x += backEndProjectiles[id].velocity.x
+      frontEndProjectiles[id].y += backEndProjectiles[id].velocity.y
+    }
+  }
+  // remove the projectile from frontend if it does not exist in the background 
+  for (const id in frontEndProjectiles) {
+    if (!backEndProjectiles[id]) {
+      delete frontEndProjectiles[id]
+    }
+  }
+})
 
 socket.on('updatePlayer', (backEndPlayers) => {
   //if a player doesn't exist in the foreground will be added
@@ -65,8 +87,8 @@ function animate() {
     const frontEndPlayer = frontEndPlayers[id]
     frontEndPlayer.draw()
   }
-  for (let i = frontEndProjectiles.length - 1; i > -1; i--) {
-    frontEndProjectiles[i].update()
+  for (const id in frontEndProjectiles) {
+    frontEndProjectiles[id].draw()
   }
 
 }
