@@ -46,7 +46,29 @@ socket.on('updatePlayer', (backEndPlayers) => {
         radius: 10,
         color: backEndPlayer.color
       })
+      document.querySelector("#playerLabels").innerHTML +=
+        `<div data-id="${id}" data-score="${backEndPlayer.score}"> 
+      ${id}: ${backEndPlayer.score}
+      </div>`
     } else {
+      //updating score
+      document.querySelector(`div[data-id="${id}"]`).innerHTML = `${id}: ${backEndPlayer.score}`
+      document.querySelector(`div[data-id="${id}"]`).setAttribute("data-score", backEndPlayer.score)
+
+      //sorting score
+      const pernDiv = document.querySelector("#playerLabels")
+      const chlidDivs = Array.from(pernDiv.querySelectorAll('div'))
+
+      chlidDivs.sort((a, b) => (Number(b.getAttribute('data-score'))) - Number(a.getAttribute('data-score')))
+      //remove old elms
+      chlidDivs.forEach(div => {
+        pernDiv.removeChild(div)
+      })
+      // add sorted elms
+      chlidDivs.forEach(div => {
+        pernDiv.appendChild(div)
+      })
+
       //if a player erxist and still got a update event from the backend means its movement update event 
       gsap.to(frontEndPlayers[id], {      //gsap for opponent interpolation
         x: backEndPlayer.x,
@@ -71,6 +93,7 @@ socket.on('updatePlayer', (backEndPlayers) => {
   //if a player exist in foreground but not in the background will be removed 
   for (const id in frontEndPlayers) {
     if (!backEndPlayers[id]) {
+      document.querySelector(`div[data-id="${id}"]`).remove()
       delete frontEndPlayers[id]
     }
   }
